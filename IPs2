@@ -1,0 +1,38 @@
+from collections import defaultdict
+
+def organize_ips_by_ports(ip_list):
+    port_groups = defaultdict(list)
+    grouped_ips = set()
+
+    for entry in ip_list:
+        # Remove "tcp://" and "udp://"
+        ip_with_protocol = entry.replace("tcp://", "").replace("udp://", "")
+
+        # Split the IP and ports
+        ip, ports = ip_with_protocol.split(":")
+        port_list = ports.split(",")  # Handle multiple ports
+
+        # Group multi-port entries
+        if len(port_list) > 1:
+            port_groups["multi-port"].append(entry)
+            grouped_ips.add(ip)
+        else:
+            port = port_list[0]  # Single port
+            if ip not in grouped_ips:
+                port_groups[port].append(entry)
+                grouped_ips.add(ip)
+
+    # Display the grouped IPs
+    for port, ips in port_groups.items():
+        print(f"Port Group {port}:")
+        for ip in ips:
+            # Remove "tcp://" and "udp://"
+            ip_with_protocol = ip.replace("tcp://", "").replace("udp://", "")
+            print(f"  - {ip_with_protocol}")
+        print()
+
+# Example IPs
+ip_data = [ 
+]
+
+organize_ips_by_ports(ip_data)
