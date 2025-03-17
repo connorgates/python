@@ -1,0 +1,17 @@
+#Call format
+def format_ips(ip_list):
+    formatted_ips = [f'"{ip.strip()}"' for ip in ip_list]
+    return ",\n".join(formatted_ips)
+
+# raw
+raw_ips = """
+
+"""
+
+# Make list
+ip_list = raw_ips.strip().split("\n")
+
+# Format
+formatted_output = format_ips(ip_list)
+
+print(formatted_output)
