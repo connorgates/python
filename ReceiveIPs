@@ -1,38 +1,60 @@
 from collections import defaultdict
+import re
+from ipaddress import ip_address
+
+
+def expand_ip_range(ip_range):
+    """Expands a range of IPs in the format 'startIP-endIP'."""
+    if "-" in ip_range:
+        start_ip, end_ip = ip_range.split("-")
+        start = ip_address(start_ip)
+        end = ip_address(end_ip)
+        return [str(ip_address(i)) for i in range(int(start), int(end) + 1)]
+    return [ip_range]
+
 
 def organize_ips_by_ports(ip_list):
-    port_groups = defaultdict(list)
-    grouped_ips = set()
+    port_groups = defaultdict(set)
+    ip_port_mapping = defaultdict(set)
+    multi_port_ips = defaultdict(set)
 
     for entry in ip_list:
         # Remove "tcp://" and "udp://"
         ip_with_protocol = entry.replace("tcp://", "").replace("udp://", "")
 
-        # Split the IP and ports
-        ip, ports = ip_with_protocol.split(":")
-        port_list = ports.split(",")  # Handle multiple ports
+        # Extract IP and port(s)
+        match = re.match(r"([\d.\-]+):([\d,\-*]+)", ip_with_protocol)
+        if match:
+            ip_range, ports = match.groups()
+            ips = expand_ip_range(ip_range)  # Expand IP range
+            port_list = ports.split(",")
 
-        # Group multi-port entries
-        if len(port_list) > 1:
-            port_groups["multi-port"].append(entry)
-            grouped_ips.add(ip)
-        else:
-            port = port_list[0]  # Single port
-            if ip not in grouped_ips:
-                port_groups[port].append(entry)
-                grouped_ips.add(ip)
+            for ip in ips:
+                if len(port_list) > 1 or "*" in port_list:
+                    multi_port_ips[ip].update(port_list)
+                else:
+                    port_groups[port_list[0]].add(ip)
+                ip_port_mapping[ip].update(port_list)
 
     # Display the grouped IPs
-    for port, ips in port_groups.items():
+    for port, ips in sorted(port_groups.items()):
         print(f"Port Group {port}:")
-        for ip in ips:
-            # Remove "tcp://" and "udp://"
-            ip_with_protocol = ip.replace("tcp://", "").replace("udp://", "")
-            print(f"  - {ip_with_protocol}")
+        for ip in sorted(ips):
+            print(f"  - {ip}")
         print()
 
-# Example IPs
-ip_data = [ 
+    if multi_port_ips:
+        print("Port Group Multi-Ports:")
+        for ip, ports in sorted(multi_port_ips.items()):
+            assigned_ports = ", ".join(sorted(ports))
+            print(f"  - {ip} (Ports: {assigned_ports})")
+        print()
+
+
+#IPs
+ip_data = [
+
+
 ]
 
 organize_ips_by_ports(ip_data)
