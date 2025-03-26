@@ -1,14 +1,15 @@
 def format_ips(ip_list):
-    # Strip 'tcp://' or 'udp://' 
+    # Strip 'tcp://' or 'udp://' prefix and wrap each IP in quotes
     formatted_ips = [f'"{ip.replace("tcp://", "").replace("udp://", "").strip()}"' for ip in ip_list]
     return ",\n".join(formatted_ips)
 
-# raw IPs 
+# raw IPs (example, you can replace this with your own raw IP list)
 raw_ips = """
+
 
 """
 
-# raw IPs output
+# Make list from raw IPs
 ip_list = raw_ips.strip().split("\n")
 
 # Format
