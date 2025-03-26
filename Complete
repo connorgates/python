@@ -3,8 +3,12 @@ import re
 from ipaddress import ip_address
 
 
+def format_ips(ip_list):
+    formatted_ips = [ip.replace("tcp://", "").replace("udp://", "").strip() for ip in ip_list]
+    return formatted_ips
+
+
 def expand_ip_range(ip_range):
-    """Expands a range of IPs in the format 'startIP-endIP'."""
     if "-" in ip_range:
         start_ip, end_ip = ip_range.split("-")
         start = ip_address(start_ip)
@@ -16,14 +20,11 @@ def expand_ip_range(ip_range):
 def organize_ips_by_ports(ip_list):
     port_groups = defaultdict(set)
     ip_port_mapping = defaultdict(set)
-    multi_port_ips = defaultdict(set)
+    multi_port_ips = defaultdict(lambda: defaultdict(set))
 
     for entry in ip_list:
-        # Remove "tcp://" and "udp://"
-        ip_with_protocol = entry.replace("tcp://", "").replace("udp://", "")
-
         # Extract IP and port(s)
-        match = re.match(r"([\d.\-]+):([\d,\-*]+)", ip_with_protocol)
+        match = re.match(r"([\d.\-]+):([\d,\-*]+)", entry)
         if match:
             ip_range, ports = match.groups()
             ips = expand_ip_range(ip_range)  # Expand IP range
@@ -31,12 +32,12 @@ def organize_ips_by_ports(ip_list):
 
             for ip in ips:
                 if len(port_list) > 1 or "*" in port_list:
-                    multi_port_ips[ip].update(port_list)
+                    multi_port_ips[tuple(sorted(port_list))][ip] = set(port_list)
                 else:
                     port_groups[port_list[0]].add(ip)
                 ip_port_mapping[ip].update(port_list)
 
-    # Display the grouped IPs
+    # Display the grouped IPs by ports
     for port, ips in sorted(port_groups.items()):
         print(f"Port Group {port}:")
         for ip in sorted(ips):
@@ -45,16 +46,23 @@ def organize_ips_by_ports(ip_list):
 
     if multi_port_ips:
         print("Port Group Multi-Ports:")
-        for ip, ports in sorted(multi_port_ips.items()):
-            assigned_ports = ", ".join(sorted(ports))
-            print(f"  - {ip} (Ports: {assigned_ports})")
+        for ports, ips in sorted(multi_port_ips.items()):
+            ports_group = ", ".join(ports)
+            print(f"  Ports {ports_group}:")
+            for ip in sorted(ips.keys()):
+                print(f"    - {ip}")
         print()
 
 
-#IPs
-ip_data = [
+# Raw IPs 
+raw_ips = """
 
+"""
 
-]
+# Make list 
+ip_list = raw_ips.strip().split("\n")
 
-organize_ips_by_ports(ip_data)
+# Format IPs
+formatted_ips = format_ips(ip_list)
+
+organize_ips_by_ports(formatted_ips)
