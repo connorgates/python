@@ -41,7 +41,7 @@ def organize_ips_by_ports(ip_list):
     for port, ips in sorted(port_groups.items()):
         print(f"Port Group {port}:")
         for ip in sorted(ips):
-            print(f"  - {ip}")
+            print(f"   {ip}")
         print()
 
     if multi_port_ips:
@@ -50,7 +50,7 @@ def organize_ips_by_ports(ip_list):
             ports_group = ", ".join(ports)
             print(f"  Ports {ports_group}:")
             for ip in sorted(ips.keys()):
-                print(f"    - {ip}")
+                print(f"     {ip}")
         print()
 
 
